@@ -1,0 +1,12 @@
+[project]
+name = "scripts"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "edtrace>=0.1.22",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "torchviz>=0.0.3",
+]

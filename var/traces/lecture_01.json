@@ -1,0 +1,4436 @@
+{
+  "files": {
+    "lecture_01.py": "import torch\nfrom edtrace import text, image, link\n\n\ndef main():\n    introduction()\n    pytorch_motivation()\n    array_representation()\n\n\ndef introduction():\n    text(\"# Deep Learning with PyTorch\")\n    text(\"### From mathematical foundations to practical implementations\")\n    text(\"Welcome! \ud83d\udc4b\")\n\n    text(\"## About Me\")\n    text(\"- Taha Akbari\")\n    text(\"- MSc Student in Computer Engineering at Sharif University of Technology\")\n    text(\"- Data Scientist at Torob\")\n    text(\"- Silver Medal in National Olympiad in Mathematics\")\n\n    text(\"## What Will We Learn?\")\n    text(\"### Part 1: Deep Learning Fundamentals\")\n    text(\"- What is deep learning, and why does it work?\")\n    text(\"- Tensors and multidimensional arrays\")\n    text(\"- Neural networks and computational graphs\")\n    text(\"- Gradients, backpropagation, and optimization\")\n\n    text(\"### Part 2: PyTorch Fundamentals\")\n    text(\"- Creating and manipulating tensors\")\n    text(\"- Memory layout, shapes, and strides\")\n    text(\"- Automatic differentiation with `torch.autograd`\")\n    text(\"- Building neural networks with `torch.nn`\")\n    text(\"- Training loops, loss functions, and optimizers\")\n    text(\"- Working with CPUs and GPUs\")\n\n    text(\"### Part 3: Problem Solving with PyTorch\")\n    text(\"- Implementing neural networks from scratch\")\n    text(\"- Training and evaluating models\")\n    text(\"- Debugging common training problems\")\n    text(\"- Writing efficient and readable PyTorch code\")\n\n    text(\"## If Time Permits...\")\n    text(\"- **torchvision:** Image datasets, transforms, and pretrained models\")\n    text(\"- **transformers:** Working with modern transformer architectures\")\n    text(\"- **sentence-transformers:** Text embeddings and semantic similarity\")\n\n    text(\"## Prerequisites\")\n    text(\"- Basic Python programming\")\n    text(\"- Familiarity with vectors, matrices, and linear algebra\")\n    text(\"- Basic calculus is helpful\")\n    text(\"- No previous PyTorch experience required!\")\n\n    text(\"## By the End of This Lecture...\")\n    text(\"You should be able to:\")\n    text(\"- Understand the role of pytorch in Deep Learning.\")\n    text(\"- Understand representation of multi dimensional arrays.\")\n\n\ndef pytorch_motivation():\n    text(\"# Why PyTorch instead of NumPy?\")\n    text(\"NumPy provides efficient multidimensional arrays and numerical operations.\")\n    text(\"PyTorch provides two particularly useful features for deep learning:\")\n    text(\"- **Automatic differentiation:** Computing gradients automatically.\")\n    text(\"- **GPU acceleration:** Performing large numerical computations efficiently.\")\n\n    text(\"## 1. Automatic Differentiation\")\n    text(\"Consider the following function:\")\n    text(r\"$$f(x) = x^2 + 3x + 1$$\")\n    text(\"Its derivative is:\")\n    text(r\"$$f'(x) = 2x + 3$$\")\n    text(\"But what if our function contains millions of operations?\")\n    text(\"Computing derivatives manually becomes impractical.\")\n\n    text(\"## PyTorch's Solution: Autograd\")\n    text(\"We only define the forward computation!\")\n\n    x = torch.tensor(2.0, requires_grad=True)  # @inspect x\n    y = x**2 + 3*x + 1  # @inspect y\n\n    y.backward()\n    gradient = x.grad  # @inspect gradient\n\n    text(\"PyTorch automatically computes the backward pass.\")\n    text(r\"$$f'(2) = 7$$\")\n    text(\"This is essential for training deep learning models.\")\n\n    text(\"## 2. GPU Acceleration\")\n    text(\"Modern deep learning involves enormous amounts of numerical computation.\")\n    text(\"GPUs can execute many arithmetic operations in parallel.\")\n    text(\"This makes them particularly effective for large matrix operations.\")\n\n    text(\"## Moving Computations to the GPU\")\n    text(\"PyTorch makes it easy to run tensor operations on different devices.\")\n\n    device = \"cuda\" if torch.cuda.is_available() else \"cpu\"  # @inspect device\n\n    A = torch.randn(1000, 1000, device=device)\n    B = torch.randn(1000, 1000, device=device)\n    C = A @ B\n\n    text(\"The same matrix multiplication code runs on CPU or GPU.\")\n    text(\"We only need to choose the appropriate device.\")\n    text(\"GPU acceleration can provide substantial speedups for large workloads.\")\n    text(\"For small operations, CPU execution may actually be faster.\")\n\n    text(\"## Why Is PyTorch Great for Deep Learning?\")\n    text(\"- Define how inputs are transformed into outputs (forward pass).\")\n    text(\"- Automatically compute gradients (backward pass).\")\n    text(\"- Execute large tensor computations efficiently on GPUs.\")\n\n    text(\"**We focus on defining the computation; PyTorch handles differentiation and device execution.**\")\n\n\ndef array_representation():\n    text(\"# How are multidimensional arrays represented?\")\n    text(\"Consider the following matrix:\")\n    text(r\"$$A = \\begin{bmatrix}1 & 2 & 3 \\\\ 4 & 5 & 6\\end{bmatrix}$$\")\n    text(\"How can we represent this matrix in computer memory?\")\n\n    text(\"## Approach 1: Contiguous arrays\")\n    text(\"In C, we can declare a multidimensional array:\")\n    text(\"`int A[2][3] = {`\")\n    text(\"`    {1, 2, 3},`\")\n    text(\"`    {4, 5, 6}`\")\n    text(\"`};`\")\n\n    image(\"images/contiguous_array.png\", width=700)\n\n    text(\"- All six elements occupy consecutive memory locations.\")\n    text(\"- C uses **row-major order**.\")\n    text(\"- This representation requires only one allocation.\")\n    text(\"- Accessing an element requires simple address arithmetic.\")\n    text(r\"$$\\operatorname{offset}(i,j) = 3i + j$$\")\n\n    text(\"## Approach 2: Array of pointers\")\n    text(\"Alternatively, we can allocate each row independently:\")\n    text(\"`int *A[2];`\")\n    text(\"`A[0] = malloc(3 * sizeof(int));`\")\n    text(\"`A[1] = malloc(3 * sizeof(int));`\")\n\n    image(\"images/pointer_rows.png\", width=700)\n\n    text(\"- Each row may occupy a different memory location.\")\n    text(\"- Accessing an element requires following a row pointer.\")\n    text(\"- Each row can have a different length.\")\n    text(\"- Separate allocations introduce overhead and reduce locality.\")\n\n    text(\"## Which representation is preferable?\")\n    text(\"For dense numerical computations, contiguous storage is usually preferable.\")\n    text(\"- Better spatial locality and cache utilization.\")\n    text(\"- No pointer chasing between rows.\")\n    text(\"- Easier vectorization and efficient bulk memory transfers.\")\n    text(\"- Particularly useful for CPU and GPU computations.\")\n\n    text(\"# From C arrays to PyTorch tensors\")\n    text(\"PyTorch tensors typically use a flat underlying storage.\")\n    text(\"But how can a flat array represent an arbitrary multidimensional tensor?\")\n\n    text(\"## Shape and strides\")\n    text(\"Two essential pieces of metadata are:\")\n    text(\"- **Shape:** Number of elements along each dimension.\")\n    text(\"- **Strides:** Number of storage elements to skip when advancing one index along each dimension.\")\n\n    A = torch.tensor([[1, 2, 3], [4, 5, 6]])  # @inspect A\n\n    shape = A.shape  # @inspect shape\n    strides = A.stride()  # @inspect strides\n\n    text(\"The shape is `(2, 3)` and the strides are `(3, 1)`.\")\n    text(\"Moving down one row skips 3 elements.\")\n    text(\"Moving right one column skips 1 element.\")\n    text(r\"$$\\operatorname{offset}(i,j) = 3i + j$$\")\n\n    text(\"## Transposition without copying\")\n    text(\"Suppose we want to transpose our matrix.\")\n\n    B = A.T  # @inspect B\n\n    b_shape = B.shape  # @inspect b_shape\n    b_strides = B.stride()  # @inspect b_strides\n\n    image(\"images/tensor_strides.png\", width=700)\n\n    text(\"Notice that the transposed tensor has:\")\n    text(\"- Shape `(3, 2)`.\")\n    text(\"- Strides `(1, 3)`.\")\n    text(\"- The same underlying storage as the original tensor.\")\n\n    shares_storage = A.untyped_storage().data_ptr() == B.untyped_storage().data_ptr()  # @inspect shares_storage\n\n    text(\"**No data was copied!** Only the tensor metadata changed.\")\n\n    text(\"## Contiguous and non-contiguous tensors\")\n    a_contiguous = A.is_contiguous()  # @inspect a_contiguous\n    b_contiguous = B.is_contiguous()  # @inspect b_contiguous\n\n    text(\"A tensor is contiguous when its elements follow the expected memory order.\")\n    text(\"Our transposed tensor is non-contiguous.\")\n\n    C = B.contiguous()  # @inspect C\n\n    c_strides = C.stride()  # @inspect c_strides\n    c_contiguous = C.is_contiguous()  # @inspect c_contiguous\n\n    text(\"Calling `.contiguous()` creates a contiguous copy when necessary.\")\n\n    text(\"## Generalization to N dimensions\")\n    text(\"For a tensor with indices and strides:\")\n    text(r\"$$\\operatorname{offset}(i_0,\\ldots,i_{n-1}) = o + \\sum_{k=0}^{n-1} i_k s_k$$\")\n    text(\"Here, `o` is the storage offset.\")\n    text(\"This is the foundation of PyTorch's strided tensor representation.\")\n\n    text(\"## Takeaways\")\n    text(\"- Dense tensors generally rely on flat storage and metadata.\")\n    text(\"- Shape determines the logical dimensions.\")\n    text(\"- Strides determine how indices map to memory.\")\n    text(\"- Operations such as transpose can create views without copying data.\")\n    text(\"- Contiguity matters for efficient numerical computation.\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+  },
+  "hidden_line_numbers": {
+    "lecture_01.py": []
+  },
+  "steps": [
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 5,
+          "function_name": "main",
+          "code": "def main():"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 11,
+          "function_name": "introduction",
+          "code": "def introduction():"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 12,
+          "function_name": "introduction",
+          "code": "text(\"# Deep Learning with PyTorch\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "# Deep Learning with PyTorch",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 13,
+          "function_name": "introduction",
+          "code": "text(\"### From mathematical foundations to practical implementations\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "### From mathematical foundations to practical implementations",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 14,
+          "function_name": "introduction",
+          "code": "text(\"Welcome! \ud83d\udc4b\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Welcome! \ud83d\udc4b",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 16,
+          "function_name": "introduction",
+          "code": "text(\"## About Me\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## About Me",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 17,
+          "function_name": "introduction",
+          "code": "text(\"- Taha Akbari\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Taha Akbari",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 18,
+          "function_name": "introduction",
+          "code": "text(\"- MSc Student in Computer Engineering at Sharif University of Technology\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- MSc Student in Computer Engineering at Sharif University of Technology",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 19,
+          "function_name": "introduction",
+          "code": "text(\"- Data Scientist at Torob\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Data Scientist at Torob",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 20,
+          "function_name": "introduction",
+          "code": "text(\"- Silver Medal in National Olympiad in Mathematics\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Silver Medal in National Olympiad in Mathematics",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 22,
+          "function_name": "introduction",
+          "code": "text(\"## What Will We Learn?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## What Will We Learn?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 23,
+          "function_name": "introduction",
+          "code": "text(\"### Part 1: Deep Learning Fundamentals\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "### Part 1: Deep Learning Fundamentals",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 24,
+          "function_name": "introduction",
+          "code": "text(\"- What is deep learning, and why does it work?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- What is deep learning, and why does it work?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 25,
+          "function_name": "introduction",
+          "code": "text(\"- Tensors and multidimensional arrays\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Tensors and multidimensional arrays",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 26,
+          "function_name": "introduction",
+          "code": "text(\"- Neural networks and computational graphs\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Neural networks and computational graphs",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 27,
+          "function_name": "introduction",
+          "code": "text(\"- Gradients, backpropagation, and optimization\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Gradients, backpropagation, and optimization",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 29,
+          "function_name": "introduction",
+          "code": "text(\"### Part 2: PyTorch Fundamentals\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "### Part 2: PyTorch Fundamentals",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 30,
+          "function_name": "introduction",
+          "code": "text(\"- Creating and manipulating tensors\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Creating and manipulating tensors",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 31,
+          "function_name": "introduction",
+          "code": "text(\"- Memory layout, shapes, and strides\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Memory layout, shapes, and strides",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 32,
+          "function_name": "introduction",
+          "code": "text(\"- Automatic differentiation with `torch.autograd`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Automatic differentiation with `torch.autograd`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 33,
+          "function_name": "introduction",
+          "code": "text(\"- Building neural networks with `torch.nn`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Building neural networks with `torch.nn`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 34,
+          "function_name": "introduction",
+          "code": "text(\"- Training loops, loss functions, and optimizers\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Training loops, loss functions, and optimizers",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 35,
+          "function_name": "introduction",
+          "code": "text(\"- Working with CPUs and GPUs\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Working with CPUs and GPUs",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 37,
+          "function_name": "introduction",
+          "code": "text(\"### Part 3: Problem Solving with PyTorch\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "### Part 3: Problem Solving with PyTorch",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 38,
+          "function_name": "introduction",
+          "code": "text(\"- Implementing neural networks from scratch\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Implementing neural networks from scratch",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 39,
+          "function_name": "introduction",
+          "code": "text(\"- Training and evaluating models\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Training and evaluating models",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 40,
+          "function_name": "introduction",
+          "code": "text(\"- Debugging common training problems\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Debugging common training problems",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 41,
+          "function_name": "introduction",
+          "code": "text(\"- Writing efficient and readable PyTorch code\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Writing efficient and readable PyTorch code",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 43,
+          "function_name": "introduction",
+          "code": "text(\"## If Time Permits...\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## If Time Permits...",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 44,
+          "function_name": "introduction",
+          "code": "text(\"- **torchvision:** Image datasets, transforms, and pretrained models\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **torchvision:** Image datasets, transforms, and pretrained models",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 45,
+          "function_name": "introduction",
+          "code": "text(\"- **transformers:** Working with modern transformer architectures\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **transformers:** Working with modern transformer architectures",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 46,
+          "function_name": "introduction",
+          "code": "text(\"- **sentence-transformers:** Text embeddings and semantic similarity\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **sentence-transformers:** Text embeddings and semantic similarity",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 48,
+          "function_name": "introduction",
+          "code": "text(\"## Prerequisites\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Prerequisites",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 49,
+          "function_name": "introduction",
+          "code": "text(\"- Basic Python programming\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Basic Python programming",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 50,
+          "function_name": "introduction",
+          "code": "text(\"- Familiarity with vectors, matrices, and linear algebra\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Familiarity with vectors, matrices, and linear algebra",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 51,
+          "function_name": "introduction",
+          "code": "text(\"- Basic calculus is helpful\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Basic calculus is helpful",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 52,
+          "function_name": "introduction",
+          "code": "text(\"- No previous PyTorch experience required!\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- No previous PyTorch experience required!",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 54,
+          "function_name": "introduction",
+          "code": "text(\"## By the End of This Lecture...\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## By the End of This Lecture...",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 55,
+          "function_name": "introduction",
+          "code": "text(\"You should be able to:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "You should be able to:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 56,
+          "function_name": "introduction",
+          "code": "text(\"- Understand the role of pytorch in Deep Learning.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Understand the role of pytorch in Deep Learning.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 57,
+          "function_name": "introduction",
+          "code": "text(\"- Understand representation of multi dimensional arrays.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Understand representation of multi dimensional arrays.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "introduction()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 60,
+          "function_name": "pytorch_motivation",
+          "code": "def pytorch_motivation():"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 61,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"# Why PyTorch instead of NumPy?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "# Why PyTorch instead of NumPy?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 62,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"NumPy provides efficient multidimensional arrays and numerical operations.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "NumPy provides efficient multidimensional arrays and numerical operations.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 63,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"PyTorch provides two particularly useful features for deep learning:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "PyTorch provides two particularly useful features for deep learning:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 64,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"- **Automatic differentiation:** Computing gradients automatically.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **Automatic differentiation:** Computing gradients automatically.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 65,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"- **GPU acceleration:** Performing large numerical computations efficiently.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **GPU acceleration:** Performing large numerical computations efficiently.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 67,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"## 1. Automatic Differentiation\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## 1. Automatic Differentiation",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 68,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"Consider the following function:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Consider the following function:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 69,
+          "function_name": "pytorch_motivation",
+          "code": "text(r\"$$f(x) = x^2 + 3x + 1$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$f(x) = x^2 + 3x + 1$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 70,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"Its derivative is:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Its derivative is:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 71,
+          "function_name": "pytorch_motivation",
+          "code": "text(r\"$$f'(x) = 2x + 3$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$f'(x) = 2x + 3$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 72,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"But what if our function contains millions of operations?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "But what if our function contains millions of operations?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 73,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"Computing derivatives manually becomes impractical.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Computing derivatives manually becomes impractical.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 75,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"## PyTorch's Solution: Autograd\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## PyTorch's Solution: Autograd",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 76,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"We only define the forward computation!\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "We only define the forward computation!",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 78,
+          "function_name": "pytorch_motivation",
+          "code": "x = torch.tensor(2.0, requires_grad=True)  # @inspect x"
+        }
+      ],
+      "env": {
+        "x": {
+          "type": "torch.Tensor",
+          "contents": 2.0,
+          "dtype": "torch.float32",
+          "shape": []
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 79,
+          "function_name": "pytorch_motivation",
+          "code": "y = x**2 + 3*x + 1  # @inspect y"
+        }
+      ],
+      "env": {
+        "y": {
+          "type": "torch.Tensor",
+          "contents": 11.0,
+          "dtype": "torch.float32",
+          "shape": []
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 81,
+          "function_name": "pytorch_motivation",
+          "code": "y.backward()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 82,
+          "function_name": "pytorch_motivation",
+          "code": "gradient = x.grad  # @inspect gradient"
+        }
+      ],
+      "env": {
+        "gradient": {
+          "type": "torch.Tensor",
+          "contents": 7.0,
+          "dtype": "torch.float32",
+          "shape": []
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 84,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"PyTorch automatically computes the backward pass.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "PyTorch automatically computes the backward pass.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 85,
+          "function_name": "pytorch_motivation",
+          "code": "text(r\"$$f'(2) = 7$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$f'(2) = 7$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 86,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"This is essential for training deep learning models.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "This is essential for training deep learning models.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 88,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"## 2. GPU Acceleration\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## 2. GPU Acceleration",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 89,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"Modern deep learning involves enormous amounts of numerical computation.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Modern deep learning involves enormous amounts of numerical computation.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 90,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"GPUs can execute many arithmetic operations in parallel.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "GPUs can execute many arithmetic operations in parallel.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 91,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"This makes them particularly effective for large matrix operations.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "This makes them particularly effective for large matrix operations.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 93,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"## Moving Computations to the GPU\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Moving Computations to the GPU",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 94,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"PyTorch makes it easy to run tensor operations on different devices.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "PyTorch makes it easy to run tensor operations on different devices.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 96,
+          "function_name": "pytorch_motivation",
+          "code": "device = \"cuda\" if torch.cuda.is_available() else \"cpu\"  # @inspect device"
+        }
+      ],
+      "env": {
+        "device": {
+          "type": "str",
+          "contents": "cpu",
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 98,
+          "function_name": "pytorch_motivation",
+          "code": "A = torch.randn(1000, 1000, device=device)"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 99,
+          "function_name": "pytorch_motivation",
+          "code": "B = torch.randn(1000, 1000, device=device)"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 100,
+          "function_name": "pytorch_motivation",
+          "code": "C = A @ B"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 102,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"The same matrix multiplication code runs on CPU or GPU.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "The same matrix multiplication code runs on CPU or GPU.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 103,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"We only need to choose the appropriate device.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "We only need to choose the appropriate device.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 104,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"GPU acceleration can provide substantial speedups for large workloads.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "GPU acceleration can provide substantial speedups for large workloads.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 105,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"For small operations, CPU execution may actually be faster.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "For small operations, CPU execution may actually be faster.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 107,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"## Why Is PyTorch Great for Deep Learning?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Why Is PyTorch Great for Deep Learning?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 108,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"- Define how inputs are transformed into outputs (forward pass).\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Define how inputs are transformed into outputs (forward pass).",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 109,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"- Automatically compute gradients (backward pass).\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Automatically compute gradients (backward pass).",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 110,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"- Execute large tensor computations efficiently on GPUs.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Execute large tensor computations efficiently on GPUs.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 112,
+          "function_name": "pytorch_motivation",
+          "code": "text(\"**We focus on defining the computation; PyTorch handles differentiation and device execution.**\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "**We focus on defining the computation; PyTorch handles differentiation and device execution.**",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "pytorch_motivation()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 115,
+          "function_name": "array_representation",
+          "code": "def array_representation():"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 116,
+          "function_name": "array_representation",
+          "code": "text(\"# How are multidimensional arrays represented?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "# How are multidimensional arrays represented?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 117,
+          "function_name": "array_representation",
+          "code": "text(\"Consider the following matrix:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Consider the following matrix:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 118,
+          "function_name": "array_representation",
+          "code": "text(r\"$$A = \\begin{bmatrix}1 & 2 & 3 \\\\ 4 & 5 & 6\\end{bmatrix}$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$A = \\begin{bmatrix}1 & 2 & 3 \\\\ 4 & 5 & 6\\end{bmatrix}$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 119,
+          "function_name": "array_representation",
+          "code": "text(\"How can we represent this matrix in computer memory?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "How can we represent this matrix in computer memory?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 121,
+          "function_name": "array_representation",
+          "code": "text(\"## Approach 1: Contiguous arrays\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Approach 1: Contiguous arrays",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 122,
+          "function_name": "array_representation",
+          "code": "text(\"In C, we can declare a multidimensional array:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "In C, we can declare a multidimensional array:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 123,
+          "function_name": "array_representation",
+          "code": "text(\"`int A[2][3] = {`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`int A[2][3] = {`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 124,
+          "function_name": "array_representation",
+          "code": "text(\"`    {1, 2, 3},`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`    {1, 2, 3},`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 125,
+          "function_name": "array_representation",
+          "code": "text(\"`    {4, 5, 6}`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`    {4, 5, 6}`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 126,
+          "function_name": "array_representation",
+          "code": "text(\"`};`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`};`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 128,
+          "function_name": "array_representation",
+          "code": "image(\"images/contiguous_array.png\", width=700)"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "image",
+          "data": "images/contiguous_array.png",
+          "style": {
+            "width": 700
+          },
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 130,
+          "function_name": "array_representation",
+          "code": "text(\"- All six elements occupy consecutive memory locations.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- All six elements occupy consecutive memory locations.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 131,
+          "function_name": "array_representation",
+          "code": "text(\"- C uses **row-major order**.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- C uses **row-major order**.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 132,
+          "function_name": "array_representation",
+          "code": "text(\"- This representation requires only one allocation.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- This representation requires only one allocation.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 133,
+          "function_name": "array_representation",
+          "code": "text(\"- Accessing an element requires simple address arithmetic.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Accessing an element requires simple address arithmetic.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 134,
+          "function_name": "array_representation",
+          "code": "text(r\"$$\\operatorname{offset}(i,j) = 3i + j$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$\\operatorname{offset}(i,j) = 3i + j$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 136,
+          "function_name": "array_representation",
+          "code": "text(\"## Approach 2: Array of pointers\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Approach 2: Array of pointers",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 137,
+          "function_name": "array_representation",
+          "code": "text(\"Alternatively, we can allocate each row independently:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Alternatively, we can allocate each row independently:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 138,
+          "function_name": "array_representation",
+          "code": "text(\"`int *A[2];`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`int *A[2];`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 139,
+          "function_name": "array_representation",
+          "code": "text(\"`A[0] = malloc(3 * sizeof(int));`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`A[0] = malloc(3 * sizeof(int));`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 140,
+          "function_name": "array_representation",
+          "code": "text(\"`A[1] = malloc(3 * sizeof(int));`\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "`A[1] = malloc(3 * sizeof(int));`",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 142,
+          "function_name": "array_representation",
+          "code": "image(\"images/pointer_rows.png\", width=700)"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "image",
+          "data": "images/pointer_rows.png",
+          "style": {
+            "width": 700
+          },
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 144,
+          "function_name": "array_representation",
+          "code": "text(\"- Each row may occupy a different memory location.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Each row may occupy a different memory location.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 145,
+          "function_name": "array_representation",
+          "code": "text(\"- Accessing an element requires following a row pointer.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Accessing an element requires following a row pointer.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 146,
+          "function_name": "array_representation",
+          "code": "text(\"- Each row can have a different length.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Each row can have a different length.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 147,
+          "function_name": "array_representation",
+          "code": "text(\"- Separate allocations introduce overhead and reduce locality.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Separate allocations introduce overhead and reduce locality.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 149,
+          "function_name": "array_representation",
+          "code": "text(\"## Which representation is preferable?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Which representation is preferable?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 150,
+          "function_name": "array_representation",
+          "code": "text(\"For dense numerical computations, contiguous storage is usually preferable.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "For dense numerical computations, contiguous storage is usually preferable.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 151,
+          "function_name": "array_representation",
+          "code": "text(\"- Better spatial locality and cache utilization.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Better spatial locality and cache utilization.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 152,
+          "function_name": "array_representation",
+          "code": "text(\"- No pointer chasing between rows.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- No pointer chasing between rows.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 153,
+          "function_name": "array_representation",
+          "code": "text(\"- Easier vectorization and efficient bulk memory transfers.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Easier vectorization and efficient bulk memory transfers.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 154,
+          "function_name": "array_representation",
+          "code": "text(\"- Particularly useful for CPU and GPU computations.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Particularly useful for CPU and GPU computations.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 156,
+          "function_name": "array_representation",
+          "code": "text(\"# From C arrays to PyTorch tensors\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "# From C arrays to PyTorch tensors",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 157,
+          "function_name": "array_representation",
+          "code": "text(\"PyTorch tensors typically use a flat underlying storage.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "PyTorch tensors typically use a flat underlying storage.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 158,
+          "function_name": "array_representation",
+          "code": "text(\"But how can a flat array represent an arbitrary multidimensional tensor?\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "But how can a flat array represent an arbitrary multidimensional tensor?",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 160,
+          "function_name": "array_representation",
+          "code": "text(\"## Shape and strides\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Shape and strides",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 161,
+          "function_name": "array_representation",
+          "code": "text(\"Two essential pieces of metadata are:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Two essential pieces of metadata are:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 162,
+          "function_name": "array_representation",
+          "code": "text(\"- **Shape:** Number of elements along each dimension.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **Shape:** Number of elements along each dimension.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 163,
+          "function_name": "array_representation",
+          "code": "text(\"- **Strides:** Number of storage elements to skip when advancing one index along each dimension.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- **Strides:** Number of storage elements to skip when advancing one index along each dimension.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 165,
+          "function_name": "array_representation",
+          "code": "A = torch.tensor([[1, 2, 3], [4, 5, 6]])  # @inspect A"
+        }
+      ],
+      "env": {
+        "A": {
+          "type": "torch.Tensor",
+          "contents": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              4,
+              5,
+              6
+            ]
+          ],
+          "dtype": "torch.int64",
+          "shape": [
+            2,
+            3
+          ]
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 167,
+          "function_name": "array_representation",
+          "code": "shape = A.shape  # @inspect shape"
+        }
+      ],
+      "env": {
+        "shape": {
+          "type": "torch.Size",
+          "contents": [
+            {
+              "type": "int",
+              "contents": 2,
+              "dtype": null,
+              "shape": null
+            },
+            {
+              "type": "int",
+              "contents": 3,
+              "dtype": null,
+              "shape": null
+            }
+          ],
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 168,
+          "function_name": "array_representation",
+          "code": "strides = A.stride()  # @inspect strides"
+        }
+      ],
+      "env": {
+        "strides": {
+          "type": "tuple",
+          "contents": [
+            {
+              "type": "int",
+              "contents": 3,
+              "dtype": null,
+              "shape": null
+            },
+            {
+              "type": "int",
+              "contents": 1,
+              "dtype": null,
+              "shape": null
+            }
+          ],
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 170,
+          "function_name": "array_representation",
+          "code": "text(\"The shape is `(2, 3)` and the strides are `(3, 1)`.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "The shape is `(2, 3)` and the strides are `(3, 1)`.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 171,
+          "function_name": "array_representation",
+          "code": "text(\"Moving down one row skips 3 elements.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Moving down one row skips 3 elements.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 172,
+          "function_name": "array_representation",
+          "code": "text(\"Moving right one column skips 1 element.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Moving right one column skips 1 element.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 173,
+          "function_name": "array_representation",
+          "code": "text(r\"$$\\operatorname{offset}(i,j) = 3i + j$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$\\operatorname{offset}(i,j) = 3i + j$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 175,
+          "function_name": "array_representation",
+          "code": "text(\"## Transposition without copying\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Transposition without copying",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 176,
+          "function_name": "array_representation",
+          "code": "text(\"Suppose we want to transpose our matrix.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Suppose we want to transpose our matrix.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 178,
+          "function_name": "array_representation",
+          "code": "B = A.T  # @inspect B"
+        }
+      ],
+      "env": {
+        "B": {
+          "type": "torch.Tensor",
+          "contents": [
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "dtype": "torch.int64",
+          "shape": [
+            3,
+            2
+          ]
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 180,
+          "function_name": "array_representation",
+          "code": "b_shape = B.shape  # @inspect b_shape"
+        }
+      ],
+      "env": {
+        "b_shape": {
+          "type": "torch.Size",
+          "contents": [
+            {
+              "type": "int",
+              "contents": 3,
+              "dtype": null,
+              "shape": null
+            },
+            {
+              "type": "int",
+              "contents": 2,
+              "dtype": null,
+              "shape": null
+            }
+          ],
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 181,
+          "function_name": "array_representation",
+          "code": "b_strides = B.stride()  # @inspect b_strides"
+        }
+      ],
+      "env": {
+        "b_strides": {
+          "type": "tuple",
+          "contents": [
+            {
+              "type": "int",
+              "contents": 1,
+              "dtype": null,
+              "shape": null
+            },
+            {
+              "type": "int",
+              "contents": 3,
+              "dtype": null,
+              "shape": null
+            }
+          ],
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 183,
+          "function_name": "array_representation",
+          "code": "image(\"images/tensor_strides.png\", width=700)"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "image",
+          "data": "images/tensor_strides.png",
+          "style": {
+            "width": 700
+          },
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 185,
+          "function_name": "array_representation",
+          "code": "text(\"Notice that the transposed tensor has:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Notice that the transposed tensor has:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 186,
+          "function_name": "array_representation",
+          "code": "text(\"- Shape `(3, 2)`.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Shape `(3, 2)`.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 187,
+          "function_name": "array_representation",
+          "code": "text(\"- Strides `(1, 3)`.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Strides `(1, 3)`.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 188,
+          "function_name": "array_representation",
+          "code": "text(\"- The same underlying storage as the original tensor.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- The same underlying storage as the original tensor.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 190,
+          "function_name": "array_representation",
+          "code": "shares_storage = A.untyped_storage().data_ptr() == B.untyped_storage().data_ptr()  # @inspect shares_storage"
+        }
+      ],
+      "env": {
+        "shares_storage": {
+          "type": "bool",
+          "contents": true,
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 192,
+          "function_name": "array_representation",
+          "code": "text(\"**No data was copied!** Only the tensor metadata changed.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "**No data was copied!** Only the tensor metadata changed.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 194,
+          "function_name": "array_representation",
+          "code": "text(\"## Contiguous and non-contiguous tensors\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Contiguous and non-contiguous tensors",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 195,
+          "function_name": "array_representation",
+          "code": "a_contiguous = A.is_contiguous()  # @inspect a_contiguous"
+        }
+      ],
+      "env": {
+        "a_contiguous": {
+          "type": "bool",
+          "contents": true,
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 196,
+          "function_name": "array_representation",
+          "code": "b_contiguous = B.is_contiguous()  # @inspect b_contiguous"
+        }
+      ],
+      "env": {
+        "b_contiguous": {
+          "type": "bool",
+          "contents": false,
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 198,
+          "function_name": "array_representation",
+          "code": "text(\"A tensor is contiguous when its elements follow the expected memory order.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "A tensor is contiguous when its elements follow the expected memory order.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 199,
+          "function_name": "array_representation",
+          "code": "text(\"Our transposed tensor is non-contiguous.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Our transposed tensor is non-contiguous.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 201,
+          "function_name": "array_representation",
+          "code": "C = B.contiguous()  # @inspect C"
+        }
+      ],
+      "env": {
+        "C": {
+          "type": "torch.Tensor",
+          "contents": [
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "dtype": "torch.int64",
+          "shape": [
+            3,
+            2
+          ]
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 203,
+          "function_name": "array_representation",
+          "code": "c_strides = C.stride()  # @inspect c_strides"
+        }
+      ],
+      "env": {
+        "c_strides": {
+          "type": "tuple",
+          "contents": [
+            {
+              "type": "int",
+              "contents": 2,
+              "dtype": null,
+              "shape": null
+            },
+            {
+              "type": "int",
+              "contents": 1,
+              "dtype": null,
+              "shape": null
+            }
+          ],
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 204,
+          "function_name": "array_representation",
+          "code": "c_contiguous = C.is_contiguous()  # @inspect c_contiguous"
+        }
+      ],
+      "env": {
+        "c_contiguous": {
+          "type": "bool",
+          "contents": true,
+          "dtype": null,
+          "shape": null
+        }
+      },
+      "renderings": []
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 206,
+          "function_name": "array_representation",
+          "code": "text(\"Calling `.contiguous()` creates a contiguous copy when necessary.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Calling `.contiguous()` creates a contiguous copy when necessary.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 208,
+          "function_name": "array_representation",
+          "code": "text(\"## Generalization to N dimensions\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Generalization to N dimensions",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 209,
+          "function_name": "array_representation",
+          "code": "text(\"For a tensor with indices and strides:\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "For a tensor with indices and strides:",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 210,
+          "function_name": "array_representation",
+          "code": "text(r\"$$\\operatorname{offset}(i_0,\\ldots,i_{n-1}) = o + \\sum_{k=0}^{n-1} i_k s_k$$\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "$$\\operatorname{offset}(i_0,\\ldots,i_{n-1}) = o + \\sum_{k=0}^{n-1} i_k s_k$$",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 211,
+          "function_name": "array_representation",
+          "code": "text(\"Here, `o` is the storage offset.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "Here, `o` is the storage offset.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 212,
+          "function_name": "array_representation",
+          "code": "text(\"This is the foundation of PyTorch's strided tensor representation.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "This is the foundation of PyTorch's strided tensor representation.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 214,
+          "function_name": "array_representation",
+          "code": "text(\"## Takeaways\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "## Takeaways",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 215,
+          "function_name": "array_representation",
+          "code": "text(\"- Dense tensors generally rely on flat storage and metadata.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Dense tensors generally rely on flat storage and metadata.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 216,
+          "function_name": "array_representation",
+          "code": "text(\"- Shape determines the logical dimensions.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Shape determines the logical dimensions.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 217,
+          "function_name": "array_representation",
+          "code": "text(\"- Strides determine how indices map to memory.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Strides determine how indices map to memory.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 218,
+          "function_name": "array_representation",
+          "code": "text(\"- Operations such as transpose can create views without copying data.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Operations such as transpose can create views without copying data.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        },
+        {
+          "path": "lecture_01.py",
+          "line_number": 219,
+          "function_name": "array_representation",
+          "code": "text(\"- Contiguity matters for efficient numerical computation.\")"
+        }
+      ],
+      "env": {},
+      "renderings": [
+        {
+          "type": "markdown",
+          "data": "- Contiguity matters for efficient numerical computation.",
+          "style": {},
+          "external_link": null,
+          "internal_link": null,
+          "animate": false
+        }
+      ]
+    },
+    {
+      "stack": [
+        {
+          "path": "lecture_01.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "array_representation()"
+        }
+      ],
+      "env": {},
+      "renderings": []
+    }
+  ]
+}
